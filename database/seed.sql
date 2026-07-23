@@ -3,22 +3,24 @@
 
 USE medibook;
 
--- Clear old rows if you re-run this file
-DELETE FROM appointments;
-DELETE FROM doctors;
-DELETE FROM patients;
+-- Clear tables and reset IDs so patient_id 1,2,3 always match
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE appointments;
+TRUNCATE TABLE doctors;
+TRUNCATE TABLE patients;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- Patients
-INSERT INTO patients (name, email, phone) VALUES
-  ('Alice', 'alice@mail.com', '0244-100-001'),
-  ('Bonae', 'bonae@mail.com', '0555-200-002'),
-  ('Sonia', 'sonia@mail.com', '0201-300-003');
+INSERT INTO patients (id, name, email, phone) VALUES
+  (1, 'Alice', 'alice@mail.com', '0244-100-001'),
+  (2, 'Bonae', 'bonae@mail.com', '0555-200-002'),
+  (3, 'Sonia', 'sonia@mail.com', '0201-300-003');
 
 -- Doctors (Dr. Adebayo will have no appointments)
-INSERT INTO doctors (name, specialty, consultation_fee, room) VALUES
-  ('Dr. Emmanuel', 'Dermatology', 150.00, 'R-12'),
-  ('Dr. Moses', 'Paediatrics', 100.00, 'R-03'),
-  ('Dr. Adebayo', 'Cardiology', 200.00, 'R-07');
+INSERT INTO doctors (id, name, specialty, consultation_fee, room) VALUES
+  (1, 'Dr. Emmanuel', 'Dermatology', 150.00, 'R-12'),
+  (2, 'Dr. Moses', 'Paediatrics', 100.00, 'R-03'),
+  (3, 'Dr. Adebayo', 'Cardiology', 200.00, 'R-07');
 
 -- Dr. Emmanuel: 11 appointments on one day (near the 12-slot daily cap)
 INSERT INTO appointments (patient_id, doctor_id, appointment_datetime, amount_paid, booked_at, status) VALUES
