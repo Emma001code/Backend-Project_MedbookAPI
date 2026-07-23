@@ -1,0 +1,21 @@
+{
+  "name": "medibook",
+  "version": "1.0.0",
+  "description": "MediBook clinic appointment backend",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.23.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}
