@@ -58,8 +58,31 @@ async function getDoctorNext7Days(doctorId) {
   }));
 }
 
+// GET /reports/doctors — every doctor, even with zero appointments
+async function getDoctorsReport() {
+  const [rows] = await pool.query(
+    `SELECT
+       d.id AS doctor_id,
+       d.name AS doctor_name,
+       COUNT(a.id) AS total_appointments,
+       COALESCE(SUM(a.amount_paid), 0) - COALESCE(SUM(a.refund_amount), 0) AS revenue_collected
+     FROM doctors d
+     LEFT JOIN appointments a ON a.doctor_id = d.id
+     GROUP BY d.id, d.name
+     ORDER BY d.id`
+  );
+
+  return rows.map((row) => ({
+    doctor_id: row.doctor_id,
+    doctor_name: row.doctor_name,
+    total_appointments: Number(row.total_appointments),
+    revenue_collected: Number(row.revenue_collected),
+  }));
+}
+
 module.exports = {
   getDoctorRevenueCollected,
   getDoctorUpcomingCount,
   getDoctorNext7Days,
+  getDoctorsReport,
 };
