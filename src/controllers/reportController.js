@@ -10,6 +10,17 @@ async function getDoctorsReport(req, res, next) {
   }
 }
 
+// GET /reports/busy-days — doctor-days above 80% capacity
+async function getBusyDaysReport(req, res, next) {
+  try {
+    const busyDays = await reportModel.getBusyDaysReport();
+    res.json(busyDays);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getDoctorsReport,
+  getBusyDaysReport,
 };
