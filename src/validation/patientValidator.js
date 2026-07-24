@@ -1,5 +1,7 @@
+// Basic email format check
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Check name, email, and phone before saving a patient
 function validatePatientInput(body) {
   const errors = [];
 
@@ -35,6 +37,7 @@ function validatePatientInput(body) {
   };
 }
 
+// Make sure the id in the URL is a real positive number
 function validatePatientId(id) {
   const patientId = Number(id);
 
@@ -45,7 +48,6 @@ function validatePatientId(id) {
   return { valid: true, data: patientId };
 }
 
-module.exports = {
-  validatePatientInput,
-  validatePatientId,
-};
+exports.validatePatientInput = validatePatientInput;
+exports.validatePatientId = validatePatientId;
+
