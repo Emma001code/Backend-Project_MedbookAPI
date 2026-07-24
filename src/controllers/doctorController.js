@@ -1,4 +1,5 @@
 const doctorModel = require('../models/doctorModel');
+const reportModel = require('../models/reportModel');
 const {
   validateDoctorInput,
   validateDoctorId,
@@ -125,10 +126,42 @@ async function deleteDoctor(req, res, next) {
   }
 }
 
+// GET /doctors/:id/statistics — revenue, upcoming count, next 7 days
+async function getDoctorStatistics(req, res, next) {
+  try {
+    const idCheck = validateDoctorId(req.params.id);
+    if (!idCheck.valid) {
+      throw createHttpError(400, idCheck.message);
+    }
+
+    const doctor = await doctorModel.findDoctorById(idCheck.data);
+    if (!doctor) {
+      throw createHttpError(404, 'Doctor not found');
+    }
+
+    const [revenue_collected, upcoming_appointments, next_7_days] = await Promise.all([
+      reportModel.getDoctorRevenueCollected(idCheck.data),
+      reportModel.getDoctorUpcomingCount(idCheck.data),
+      reportModel.getDoctorNext7Days(idCheck.data),
+    ]);
+
+    res.json({
+      doctor_id: doctor.id,
+      doctor_name: doctor.name,
+      revenue_collected,
+      upcoming_appointments,
+      next_7_days,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getAllDoctors,
   getDoctorById,
   createDoctor,
   updateDoctor,
   deleteDoctor,
+  getDoctorStatistics,
 };
