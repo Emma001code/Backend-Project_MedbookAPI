@@ -80,9 +80,43 @@ async function getDoctorsReport() {
   }));
 }
 
+// GET /reports/busy-days — doctor-days over 80% of the daily slot cap
+async function getBusyDaysReport() {
+  const [rows] = await pool.query(
+    `SELECT
+       d.id AS doctor_id,
+       d.name AS doctor_name,
+       DATE(a.appointment_datetime) AS date,
+       COUNT(a.id) AS scheduled_appointments,
+       ? AS daily_capacity,
+       ROUND(COUNT(a.id) / ? * 100, 2) AS utilization_percent
+     FROM appointments a
+     INNER JOIN doctors d ON d.id = a.doctor_id
+     WHERE a.status = 'scheduled'
+     GROUP BY d.id, d.name, DATE(a.appointment_datetime)
+     HAVING COUNT(a.id) / ? > 0.8
+     ORDER BY date, d.id`,
+    [
+      MAX_DAILY_APPOINTMENTS,
+      MAX_DAILY_APPOINTMENTS,
+      MAX_DAILY_APPOINTMENTS,
+    ]
+  );
+
+  return rows.map((row) => ({
+    doctor_id: row.doctor_id,
+    doctor_name: row.doctor_name,
+    date: row.date,
+    scheduled_appointments: Number(row.scheduled_appointments),
+    daily_capacity: Number(row.daily_capacity),
+    utilization_percent: Number(row.utilization_percent),
+  }));
+}
+
 module.exports = {
   getDoctorRevenueCollected,
   getDoctorUpcomingCount,
   getDoctorNext7Days,
   getDoctorsReport,
+  getBusyDaysReport,
 };
