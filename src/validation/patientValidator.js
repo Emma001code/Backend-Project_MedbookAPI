@@ -1,3 +1,7 @@
+// Patient validation — runs before any database call
+
+const { validatePositiveInteger } = require('./commonValidator');
+
 // Basic email format check
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,17 +41,12 @@ function validatePatientInput(body) {
   };
 }
 
-// Make sure the id in the URL is a real positive number
+// Check the :id in the URL is a valid number
 function validatePatientId(id) {
-  const patientId = Number(id);
-
-  if (!Number.isInteger(patientId) || patientId <= 0) {
-    return { valid: false, message: 'Invalid patient id' };
-  }
-
-  return { valid: true, data: patientId };
+  return validatePositiveInteger(id, 'patient id');
 }
 
-exports.validatePatientInput = validatePatientInput;
-exports.validatePatientId = validatePatientId;
-
+module.exports = {
+  validatePatientInput,
+  validatePatientId,
+};
