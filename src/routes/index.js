@@ -1,10 +1,12 @@
 const express = require('express');
 const pool = require('../config/db');
 const patientRoutes = require('./patientRoutes');
+const doctorRoutes = require('./doctorRoutes');
 
 const router = express.Router();
 
 router.use('/patients', patientRoutes);
+router.use('/doctors', doctorRoutes);
 
 router.get('/health', async (req, res, next) => {
   try {
