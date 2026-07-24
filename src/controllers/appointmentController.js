@@ -2,6 +2,9 @@ const appointmentModel = require('../models/appointmentModel');
 const patientModel = require('../models/patientModel');
 const doctorModel = require('../models/doctorModel');
 const { validateBookAppointmentInput } = require('../validation/appointmentValidator');
+const { validatePositiveInteger } = require('../validation/commonValidator');
+const { calculateRefund } = require('../validation/refundCalculator');
+const { notifyWaitlistSlotFreed } = require('../services/waitlistService');
 
 // --- helpers ---
 
@@ -60,6 +63,52 @@ async function bookAppointment(req, res, next) {
   }
 }
 
+// Cancel an appointment and return the refund amount
+async function cancelAppointment(req, res, next) {
+  try {
+    const idCheck = validatePositiveInteger(req.params.id, 'appointment id');
+    if (!idCheck.valid) {
+      throw createHttpError(400, idCheck.message);
+    }
+
+    const existing = await appointmentModel.findAppointmentById(idCheck.data);
+    if (!existing) {
+      throw createHttpError(404, 'Appointment not found');
+    }
+
+    if (existing.status === 'cancelled') {
+      throw createHttpError(409, 'Appointment is already cancelled');
+    }
+
+    const cancelledAt = new Date();
+    const refundAmount = calculateRefund(
+      existing.amount_paid,
+      existing.appointment_datetime,
+      cancelledAt
+    );
+
+    const appointment = await appointmentModel.cancelAppointment(idCheck.data, {
+      cancelled_at: cancelledAt,
+      refund_amount: refundAmount,
+    });
+
+    // Slot is free again — Part E worker will promote waitlist from here
+    await notifyWaitlistSlotFreed({
+      doctor_id: appointment.doctor_id,
+      appointment_datetime: appointment.appointment_datetime,
+    });
+
+    res.json({
+      message: 'Appointment cancelled',
+      refund_amount: refundAmount,
+      appointment,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   bookAppointment,
+  cancelAppointment,
 };

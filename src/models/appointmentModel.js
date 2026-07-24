@@ -90,7 +90,65 @@ async function bookAppointment({
   }
 }
 
+// DELETE /appointments/:id — cancel and store refund in one transaction
+async function cancelAppointment(id, { cancelled_at, refund_amount }) {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [rows] = await connection.query(
+      `SELECT id, patient_id, doctor_id, appointment_datetime, amount_paid,
+              booked_at, status, cancelled_at, refund_amount
+       FROM appointments
+       WHERE id = ?
+       FOR UPDATE`,
+      [id]
+    );
+
+    const appointment = rows[0];
+
+    if (!appointment) {
+      const error = new Error('Appointment not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (appointment.status === 'cancelled') {
+      const error = new Error('Appointment is already cancelled');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // Cancel + refund saved together — both succeed or both fail
+    await connection.query(
+      `UPDATE appointments
+       SET status = 'cancelled', cancelled_at = ?, refund_amount = ?
+       WHERE id = ?`,
+      [cancelled_at, refund_amount, id]
+    );
+
+    await connection.commit();
+
+    const [updatedRows] = await pool.query(
+      `SELECT id, patient_id, doctor_id, appointment_datetime, amount_paid,
+              booked_at, status, cancelled_at, refund_amount
+       FROM appointments
+       WHERE id = ?`,
+      [id]
+    );
+
+    return updatedRows[0];
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 module.exports = {
   findAppointmentById,
   bookAppointment,
+  cancelAppointment,
 };
