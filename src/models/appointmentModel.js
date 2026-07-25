@@ -147,8 +147,33 @@ async function cancelAppointment(id, { cancelled_at, refund_amount }) {
   }
 }
 
+// Waitlist join — slot taken or doctor-day at the 12-appointment cap
+async function isWaitlistEligible(doctor_id, appointment_datetime) {
+  const dailyCount = await countScheduledForDoctorOnDate(
+    pool,
+    doctor_id,
+    appointment_datetime
+  );
+
+  if (dailyCount >= MAX_DAILY_APPOINTMENTS) {
+    return true;
+  }
+
+  const [rows] = await pool.query(
+    `SELECT id FROM appointments
+     WHERE doctor_id = ?
+       AND appointment_datetime = ?
+       AND status = 'scheduled'
+     LIMIT 1`,
+    [doctor_id, appointment_datetime]
+  );
+
+  return rows.length > 0;
+}
+
 module.exports = {
   findAppointmentById,
   bookAppointment,
   cancelAppointment,
+  isWaitlistEligible,
 };
