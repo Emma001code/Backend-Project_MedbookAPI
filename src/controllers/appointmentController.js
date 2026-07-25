@@ -5,6 +5,7 @@ const { validateBookAppointmentInput } = require('../validation/appointmentValid
 const { validatePositiveInteger } = require('../validation/commonValidator');
 const { calculateRefund } = require('../validation/refundCalculator');
 const { notifyWaitlistSlotFreed } = require('../services/waitlistService');
+const { appendToAuditLog } = require('../services/auditLogService');
 
 // --- helpers ---
 
@@ -47,6 +48,16 @@ async function bookAppointment(req, res, next) {
       appointment_datetime,
       amount_paid: doctor.consultation_fee,
       booked_at: new Date(),
+    });
+
+    // Part D — log after success; failure must not affect the response
+    void appendToAuditLog({
+      event: 'booking',
+      appointment_id: appointment.id,
+      patient_id: appointment.patient_id,
+      doctor_id: appointment.doctor_id,
+      appointment_datetime: appointment.appointment_datetime,
+      amount_paid: appointment.amount_paid,
     });
 
     res.status(201).json(appointment);
@@ -96,6 +107,16 @@ async function cancelAppointment(req, res, next) {
     await notifyWaitlistSlotFreed({
       doctor_id: appointment.doctor_id,
       appointment_datetime: appointment.appointment_datetime,
+    });
+
+    // Part D — log after success; failure must not affect the response
+    void appendToAuditLog({
+      event: 'cancellation',
+      appointment_id: appointment.id,
+      patient_id: appointment.patient_id,
+      doctor_id: appointment.doctor_id,
+      appointment_datetime: appointment.appointment_datetime,
+      refund_amount: refundAmount,
     });
 
     res.json({
