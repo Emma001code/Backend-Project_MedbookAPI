@@ -4,7 +4,7 @@ const doctorModel = require('../models/doctorModel');
 const { validateBookAppointmentInput } = require('../validation/appointmentValidator');
 const { validatePositiveInteger } = require('../validation/commonValidator');
 const { calculateRefund } = require('../validation/refundCalculator');
-const { notifyWaitlistSlotFreed } = require('../services/waitlistService');
+const { notifyWaitlistSlotFreed, enqueueConfirmationJob } = require('../services/waitlistService');
 const { appendToAuditLog } = require('../services/auditLogService');
 
 // --- helpers ---
@@ -60,6 +60,14 @@ async function bookAppointment(req, res, next) {
       amount_paid: appointment.amount_paid,
     });
 
+    // Part E — worker sends confirmation via audit log
+    void enqueueConfirmationJob({
+      patient_id: appointment.patient_id,
+      doctor_id: appointment.doctor_id,
+      appointment_id: appointment.id,
+      appointment_datetime: appointment.appointment_datetime,
+    });
+
     res.status(201).json(appointment);
   } catch (error) {
     // Full day or taken slot — client can join waitlist later
@@ -103,11 +111,15 @@ async function cancelAppointment(req, res, next) {
       refund_amount: refundAmount,
     });
 
-    // Slot is free again — Part E worker will promote waitlist from here
-    await notifyWaitlistSlotFreed({
-      doctor_id: appointment.doctor_id,
-      appointment_datetime: appointment.appointment_datetime,
-    });
+    // Slot is free again — worker pops first patient on the doctor-day queue
+    try {
+      await notifyWaitlistSlotFreed({
+        doctor_id: appointment.doctor_id,
+        appointment_datetime: appointment.appointment_datetime,
+      });
+    } catch (error) {
+      console.error('Failed to notify waitlist:', error.message);
+    }
 
     // Part D — log after success; failure must not affect the response
     void appendToAuditLog({
