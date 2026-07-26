@@ -20,11 +20,19 @@ function waitlistKey(doctorId, appointmentDatetime) {
   return `medibook:waitlist:doctor:${doctorId}:date:${date}`;
 }
 
+// Fix — format local time, not UTC
 function normalizeDatetime(value) {
   if (value instanceof Date) {
-    return value.toISOString().slice(0, 19).replace('T', ' ');
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    const hour = String(value.getHours()).padStart(2, '0');
+    const minute = String(value.getMinutes()).padStart(2, '0');
+    const second = String(value.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
-  return String(value);
+
+  return String(value).trim().replace('T', ' ').slice(0, 19);
 }
 
 // POST /waitlist — join the doctor-day queue
@@ -78,6 +86,7 @@ async function returnPatientToWaitlistFront({ patient_id, doctor_id, appointment
 module.exports = {
   FREED_SLOTS_QUEUE,
   CONFIRMATION_QUEUE,
+  normalizeDatetime,
   joinWaitlist,
   notifyWaitlistSlotFreed,
   enqueueConfirmationJob,

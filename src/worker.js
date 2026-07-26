@@ -7,9 +7,11 @@ const appointmentModel = require('./models/appointmentModel');
 const doctorModel = require('./models/doctorModel');
 const patientModel = require('./models/patientModel');
 const { appendToAuditLog } = require('./services/auditLogService');
+const { validateAppointmentSlot } = require('./validation/slotValidator');
 const {
   FREED_SLOTS_QUEUE,
   CONFIRMATION_QUEUE,
+  normalizeDatetime,
   popNextWaitlistedPatient,
   returnPatientToWaitlistFront,
   enqueueConfirmationJob,
@@ -36,7 +38,8 @@ async function processConfirmationJob(raw) {
 }
 
 async function processFreedSlot(raw) {
-  const { doctor_id, appointment_datetime } = JSON.parse(raw);
+  const { doctor_id, appointment_datetime: rawDatetime } = JSON.parse(raw);
+  const appointment_datetime = normalizeDatetime(rawDatetime);
   const patientIdStr = await popNextWaitlistedPatient(doctor_id, appointment_datetime);
 
   if (!patientIdStr) {
@@ -46,6 +49,11 @@ async function processFreedSlot(raw) {
   const patient_id = Number(patientIdStr);
 
   try {
+    const slotCheck = validateAppointmentSlot(appointment_datetime);
+    if (!slotCheck.valid) {
+      throw new Error(slotCheck.message);
+    }
+
     const doctor = await doctorModel.findDoctorById(doctor_id);
     if (!doctor) {
       throw new Error('Doctor not found');
@@ -59,7 +67,7 @@ async function processFreedSlot(raw) {
     const appointment = await appointmentModel.bookAppointment({
       patient_id,
       doctor_id,
-      appointment_datetime,
+      appointment_datetime: slotCheck.data,
       amount_paid: doctor.consultation_fee,
       booked_at: new Date(),
     });

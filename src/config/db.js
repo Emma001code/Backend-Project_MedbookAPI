@@ -9,6 +9,8 @@ const pool = mysql.createPool({
   database: env.db.database,
   waitForConnections: true,
   connectionLimit: 10,
+  // Fix — keep datetime as string so worker gets correct clinic time
+  dateStrings: true,
 });
 
 module.exports = pool;
