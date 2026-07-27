@@ -1,0 +1,19 @@
+{
+  "pageTitle": "Trimester Learning Reflection",
+  "instructions": "Take a moment to reflect on your backend development journey. Respond honestly to each prompt below, every perspective helps improve how we teach and assess this course.",
+  "dateLabel": "Form date",
+  "questions": [
+    "Which topic in this course did you find most challenging, and why?",
+    "Describe one concept you understood only after the practical assignments. What made it click?",
+    "How has your approach to designing databases or APIs changed since the start of the trimester?",
+    "What would you improve about how this course was taught or assessed?",
+    "How do you plan to apply what you learned in this course going forward?"
+  ],
+  "answers": [
+    "Queueing systems and Redis. It was challenging because it asks you to think about time and order, what happens when two requests arrive at once, what runs in the background, and how to recover when a job fails. Moving from synchronous request/response logic to queues and workers took a different mental model than SQL or REST alone.",
+    "Advanced SQL concepts through the ReadMore group activity. We built a small online-bookstore database, imported real data from CSV files, and worked through joins, indexes, stored procedures, transactions, triggers, and events in order. What made it click was seeing each topic use the same dataset, a join only made sense after the tables were populated, and transactions finally felt necessary when one activity changed data that the next activity depended on.",
+    "I now start with entities and constraints before writing routes, and I know how to categorize a codebase properly, models for SQL, controllers for business flow, routes for HTTP mapping, validation for pure rules, and services for cross-cutting work like logging or queues. I design REST endpoints with clear status codes, keep parameterized queries in models only, and treat fees, refunds, and validation as server-side rules rather than client decisions.",
+    "I have no comment to add here. The course was well structured and the facilitator's style of lecturing, clear explanations, patience with questions, considerate and goes on loop to explain till we grasp the concept and connecting theory to practice, made a difficult trimester feel manageable and genuinely useful.",
+    "I plan to approach new backend projects with the same discipline: normalize data first, expose it through a well-structured API, test pure business logic in isolation, and handle slow or retryable work outside the request cycle. More than any single tool, the course taught me how to think about reliability, security, and maintainability before I write the first route."
+  ]
+}

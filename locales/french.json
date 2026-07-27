@@ -1,0 +1,19 @@
+{
+  "pageTitle": "Reflexion d'apprentissage du trimestre",
+  "instructions": "Prenez un moment pour reflechir a votre parcours en developpement backend. Repondez avec sincerite a chaque question—vos retours nous aident a ameliorer l'enseignement et l'evaluation de ce cours.",
+  "dateLabel": "Date du formulaire",
+  "questions": [
+    "Quel sujet de ce cours avez-vous trouve le plus difficile, et pourquoi ?",
+    "Decrivez un concept que vous n'avez compris qu'apres les travaux pratiques. Qu'est-ce qui a declenche la comprehension ?",
+    "Comment votre facon de concevoir des bases de donnees ou des API a-t-elle change depuis le debut du trimestre ?",
+    "Que amelioreriez-vous dans la facon dont ce cours a ete enseigne ou evalue ?",
+    "Comment comptez-vous appliquer ce que vous avez appris dans ce cours a l'avenir ?"
+  ],
+  "answers": [
+    "Les files d'attente et Redis. C'etait difficile parce qu'il faut penser au temps et a l'ordre que se passe-t-il quand deux requetes arrivent en meme temps, que s'execute en arriere-plan, et comment reprendre apres un echec. Passer d'une logique synchrone requete/reponse aux files et aux workers demande un mode de pensee different du SQL ou du REST seuls.",
+    "Les concepts SQL avances a travers l'activite de groupe ReadMore. Nous avons construit une petite base de donnees de librairie en ligne, importe des donnees reelles depuis des fichiers CSV, puis travaille les jointures, index, procedures stockees, transactions, triggers et evenements dans l'ordre. Ce qui a declenche la comprehension, c'est que chaque sujet utilisait le meme jeu de donnees, une jointure n'avait de sens qu'apres le peuplement des tables, et les transactions sont devenues necessaires quand une activite modifiait des donnees dont la suivante dependait.",
+    "Je commence maintenant par les entites et les contraintes avant d'ecrire les routes, et je sais comment categoriser un codebase modeles pour le SQL, controllers pour le flux metier, routes pour le mapping HTTP, validation pour les regles pures, et services pour le transversal comme la journalisation ou les files. Je concois des endpoints REST avec des codes HTTP clairs, garde les requetes parametrees uniquement dans les modeles, et traite les frais, remboursements et validations comme des regles serveur, jamais cote client.",
+    "Je n'ai pas de commentaire a ajouter. Le cours etait bien structure et le style d'enseignement du facilitateur, explications claires, patience avec les questions, et lien entre theorie et pratique, ont rendu un trimestre difficile accessible et vraiment utile.",
+    "Je compte aborder les nouveaux projets backend avec la meme discipline : normaliser les donnees d'abord, les exposer via une API bien structuree, tester la logique metier pure a part, et traiter le travail lent ou reessaiyable en dehors du cycle de requete. Plus qu'un outil precis, le cours m'a appris a penser fiabilite, securite et maintenabilite avant d'ecrire la premiere route."
+  ]
+}
