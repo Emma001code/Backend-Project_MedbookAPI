@@ -22,12 +22,23 @@ function validateBookAppointmentInput(body) {
     return slotCheck;
   }
 
+  if (
+    'join_waitlist_if_full' in body &&
+    typeof body.join_waitlist_if_full !== 'boolean'
+  ) {
+    return {
+      valid: false,
+      message: 'join_waitlist_if_full must be true or false',
+    };
+  }
+
   return {
     valid: true,
     data: {
       patient_id: patientCheck.data,
       doctor_id: doctorCheck.data,
       appointment_datetime: slotCheck.data,
+      join_waitlist_if_full: body.join_waitlist_if_full === true,
     },
   };
 }

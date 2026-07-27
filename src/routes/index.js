@@ -4,7 +4,7 @@ const patientRoutes = require('./patientRoutes');
 const doctorRoutes = require('./doctorRoutes');
 const appointmentRoutes = require('./appointmentRoutes');
 const reportRoutes = require('./reportRoutes');
-const waitlistRoutes = require('./waitlistRoutes');
+const feedbackRoutes = require('./feedbackRoutes');
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.use('/patients', patientRoutes);
 router.use('/doctors', doctorRoutes);
 router.use('/appointments', appointmentRoutes);
 router.use('/reports', reportRoutes);
-router.use('/waitlist', waitlistRoutes);
+router.use('/feedback', feedbackRoutes);
 
 router.get('/health', async (req, res, next) => {
   try {

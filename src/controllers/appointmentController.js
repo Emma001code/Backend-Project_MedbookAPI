@@ -4,7 +4,7 @@ const doctorModel = require('../models/doctorModel');
 const { validateBookAppointmentInput } = require('../validation/appointmentValidator');
 const { validatePositiveInteger } = require('../validation/commonValidator');
 const { calculateRefund } = require('../validation/refundCalculator');
-const { notifyWaitlistSlotFreed, enqueueConfirmationJob } = require('../services/waitlistService');
+const { notifyWaitlistSlotFreed, enqueueConfirmationJob, joinWaitlist } = require('../services/waitlistService');
 const { appendToAuditLog } = require('../services/auditLogService');
 
 // --- helpers ---
@@ -21,6 +21,8 @@ function createHttpError(statusCode, message, extra = {}) {
 
 // Book a new appointment for a patient with a doctor
 async function bookAppointment(req, res, next) {
+  let bookingInput;
+
   try {
     // Step 1: check ids and slot time
     const validation = validateBookAppointmentInput(req.body);
@@ -28,7 +30,13 @@ async function bookAppointment(req, res, next) {
       throw createHttpError(422, validation.message);
     }
 
-    const { patient_id, doctor_id, appointment_datetime } = validation.data;
+    bookingInput = validation.data;
+    const {
+      patient_id,
+      doctor_id,
+      appointment_datetime,
+      join_waitlist_if_full,
+    } = bookingInput;
 
     // Step 2: make sure patient and doctor exist
     const patient = await patientModel.findPatientById(patient_id);
@@ -70,12 +78,57 @@ async function bookAppointment(req, res, next) {
 
     res.status(201).json(appointment);
   } catch (error) {
-    // Full day or taken slot — client can join waitlist later
-    if (error.statusCode === 409 && error.waitlist_available) {
-      return res.status(409).json({
-        error: error.message,
-        waitlist_available: true,
-      });
+    if (error.statusCode === 409 && error.waitlist_available && bookingInput) {
+      const {
+        patient_id,
+        doctor_id,
+        appointment_datetime,
+        join_waitlist_if_full,
+      } = bookingInput;
+
+      if (!join_waitlist_if_full) {
+        return res.status(409).json({
+          error: error.message,
+          waitlist_available: true,
+        });
+      }
+
+      const eligible = await appointmentModel.isWaitlistEligible(
+        doctor_id,
+        appointment_datetime
+      );
+
+      if (!eligible) {
+        return res.status(409).json({
+          error: error.message,
+          waitlist_available: false,
+        });
+      }
+
+      try {
+        const { position } = await joinWaitlist({
+          patient_id,
+          doctor_id,
+          appointment_datetime,
+        });
+
+        return res.status(201).json({
+          status: 'waitlisted',
+          message: 'Added to waitlist',
+          patient_id,
+          doctor_id,
+          appointment_datetime,
+          position,
+        });
+      } catch (waitlistError) {
+        if (waitlistError.statusCode) {
+          return res.status(waitlistError.statusCode).json({
+            error: waitlistError.message,
+          });
+        }
+
+        throw waitlistError;
+      }
     }
 
     next(error);

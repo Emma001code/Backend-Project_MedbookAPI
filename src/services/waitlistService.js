@@ -35,7 +35,7 @@ function normalizeDatetime(value) {
   return String(value).trim().replace('T', ' ').slice(0, 19);
 }
 
-// POST /waitlist — join the doctor-day queue
+// Join the doctor-day queue (called from POST /appointments when slot is full)
 async function joinWaitlist({ patient_id, doctor_id, appointment_datetime }) {
   const key = waitlistKey(doctor_id, appointment_datetime);
   const patientId = String(patient_id);
