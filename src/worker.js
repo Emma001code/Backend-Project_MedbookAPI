@@ -12,7 +12,7 @@ const {
   FREED_SLOTS_QUEUE,
   CONFIRMATION_QUEUE,
   normalizeDatetime,
-  popNextWaitlistedPatient,
+  popNextWaitlistEntry,
   returnPatientToWaitlistFront,
   enqueueConfirmationJob,
 } = require('./services/waitlistService');
@@ -40,13 +40,13 @@ async function processConfirmationJob(raw) {
 async function processFreedSlot(raw) {
   const { doctor_id, appointment_datetime: rawDatetime } = JSON.parse(raw);
   const appointment_datetime = normalizeDatetime(rawDatetime);
-  const patientIdStr = await popNextWaitlistedPatient(doctor_id, appointment_datetime);
+  const waitlistEntry = await popNextWaitlistEntry(doctor_id, appointment_datetime);
 
-  if (!patientIdStr) {
+  if (!waitlistEntry) {
     return;
   }
 
-  const patient_id = Number(patientIdStr);
+  const { patient_id } = waitlistEntry;
 
   try {
     const slotCheck = validateAppointmentSlot(appointment_datetime);

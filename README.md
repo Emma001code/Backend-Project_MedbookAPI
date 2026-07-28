@@ -129,3 +129,9 @@ Create a **simple HTML page** (served by your Express app at `GET /feedback`) co
 - A short **viva/demo (10 minutes)** walkthrough.
 
 **Automatic penalties:** SQL injection vector anywhere in the app (−15), secrets committed to the repo (−5), app does not start per README instructions (−10), work the student cannot explain in the video (or at a follow-up viva if called) | Academic integrity referral; affected criteria re-scored at Developing or below |
+
+---
+
+## Project setup and design notes
+
+Setup steps, `.env.example` usage, API overview, written justifications for Parts C, D, and E, and the demo video are in **[docs/README.md](./docs/README.md)**.
