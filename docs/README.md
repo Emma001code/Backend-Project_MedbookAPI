@@ -8,15 +8,15 @@ How to run the project locally and the main design choices for Parts C, D, and E
 
 ## What is in this repo
 
-| Item | Location |
-|------|----------|
-| ER diagram | `schema-diagram.png` |
-| Database DDL + seed data | `database/schema.sql`, `database/seed.sql` |
-| API + worker | `src/` |
-| Unit tests | `tests/` |
-| Locale files (Part G) | `locales/english.json`, `locales/french.json` |
-| Environment template | `.env.example` |
-| Docs + demo video | `docs/` |
+| Item                     | Location                                      |
+| ------------------------ | --------------------------------------------- |
+| ER diagram               | `schema-diagram.png`                          |
+| Database DDL + seed data | `database/schema.sql`, `database/seed.sql`    |
+| API + worker             | `src/`                                        |
+| Unit tests               | `tests/`                                      |
+| Locale files (Part G)    | `locales/english.json`, `locales/french.json` |
+| Environment template     | `.env.example`                                |
+| Docs + demo video        | `docs/`                                       |
 
 ---
 
@@ -63,11 +63,11 @@ Open `.env` and set `DB_PASSWORD` to your MySQL password. The other defaults (`D
 
 Variables (see `.env.example` for the full list):
 
-| Variable | Purpose |
-|----------|---------|
-| `PORT` | API port (default `3000`) |
-| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | MySQL connection |
-| `REDIS_HOST`, `REDIS_PORT` | Redis connection |
+| Variable                                                  | Purpose                   |
+| --------------------------------------------------------- | ------------------------- |
+| `PORT`                                                    | API port (default `3000`) |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | MySQL connection          |
+| `REDIS_HOST`, `REDIS_PORT`                                | Redis connection          |
 
 Do not commit `.env`. Secrets in git cost marks.
 
@@ -118,30 +118,30 @@ All routes are mounted at the root. SQL lives only in `src/models/`.
 
 ### Patients
 
-| Method | Path | Notes |
-|--------|------|-------|
-| `GET` | `/patients` | List all |
-| `GET` | `/patients/:id` | One patient |
-| `POST` | `/patients` | Create |
-| `PUT` | `/patients/:id` | Update |
-| `DELETE` | `/patients/:id` | Delete |
+| Method   | Path            | Notes       |
+| -------- | --------------- | ----------- |
+| `GET`    | `/patients`     | List all    |
+| `GET`    | `/patients/:id` | One patient |
+| `POST`   | `/patients`     | Create      |
+| `PUT`    | `/patients/:id` | Update      |
+| `DELETE` | `/patients/:id` | Delete      |
 
 ### Doctors
 
-| Method | Path | Notes |
-|--------|------|-------|
-| `GET` | `/doctors` | List all |
-| `GET` | `/doctors/:id` | One doctor |
-| `GET` | `/doctors/:id/statistics` | Revenue, upcoming count, 7-day breakdown, utilization |
-| `POST` | `/doctors` | Create |
-| `PUT` | `/doctors/:id` | Update |
-| `DELETE` | `/doctors/:id` | Delete |
+| Method   | Path                      | Notes                                                 |
+| -------- | ------------------------- | ----------------------------------------------------- |
+| `GET`    | `/doctors`                | List all                                              |
+| `GET`    | `/doctors/:id`            | One doctor                                            |
+| `GET`    | `/doctors/:id/statistics` | Revenue, upcoming count, 7-day breakdown, utilization |
+| `POST`   | `/doctors`                | Create                                                |
+| `PUT`    | `/doctors/:id`            | Update                                                |
+| `DELETE` | `/doctors/:id`            | Delete                                                |
 
 ### Appointments
 
-| Method | Path | Notes |
-|--------|------|-------|
-| `POST` | `/appointments` | Book a slot |
+| Method   | Path                | Notes           |
+| -------- | ------------------- | --------------- |
+| `POST`   | `/appointments`     | Book a slot     |
 | `DELETE` | `/appointments/:id` | Cancel + refund |
 
 **Book request body:**
@@ -161,17 +161,17 @@ All routes are mounted at the root. SQL lives only in `src/models/`.
 
 ### Reports
 
-| Method | Path | Notes |
-|--------|------|-------|
-| `GET` | `/reports/doctors` | Every doctor, including those with zero appointments |
-| `GET` | `/reports/busy-days` | Doctor-days above 80% of the 12-slot cap |
+| Method | Path                 | Notes                                                |
+| ------ | -------------------- | ---------------------------------------------------- |
+| `GET`  | `/reports/doctors`   | Every doctor, including those with zero appointments |
+| `GET`  | `/reports/busy-days` | Doctor-days above 80% of the 12-slot cap             |
 
 ### Feedback (Part G)
 
-| Method | Path | Notes |
-|--------|------|-------|
-| `GET` | `/feedback` | English feedback form |
-| `GET` | `/feedback?lang=fr` | French version |
+| Method | Path                | Notes                 |
+| ------ | ------------------- | --------------------- |
+| `GET`  | `/feedback`         | English feedback form |
+| `GET`  | `/feedback?lang=fr` | French version        |
 
 Unsupported `lang` values fall back to English.
 
@@ -188,6 +188,7 @@ These are the main decisions for Parts C, D, and E.
 **Validation before the database.** Slot rules (future only, 09:00 to 17:00, 30-minute boundaries, last slot at 16:30) live in `slotValidator.js`. Controllers validate first and return `422` for bad input. The model layer handles rules that need database state (daily cap, double booking).
 
 **Stopping double bookings.** Two things work together:
+
 - A generated `active_slot` column plus `UNIQUE(doctor_id, active_slot)` blocks two scheduled rows for the same doctor and time.
 - Booking runs inside a transaction and maps MySQL duplicate-key errors to `409`.
 
@@ -195,11 +196,11 @@ That way even two requests at the same instant should not both succeed.
 
 **Refunds.** The server calculates the refund in `refundCalculator.js`. The client never sends an amount.
 
-| Notice before appointment | Refund |
-|---------------------------|--------|
-| 48 hours or more | 100% |
-| 24 hours up to (but not including) 48 hours | 50% |
-| Less than 24 hours | 0% |
+| Notice before appointment                   | Refund |
+| ------------------------------------------- | ------ |
+| 48 hours or more                            | 100%   |
+| 24 hours up to (but not including) 48 hours | 50%    |
+| Less than 24 hours                          | 0%     |
 
 At exactly 24 hours notice you get 50%. At exactly 48 hours you get 100%.
 
@@ -259,4 +260,4 @@ I did not add a separate `POST /waitlist` endpoint. Waitlist join happens inside
 
 ## Demo video
 
-- **Video:** *()*
+- Demo walkthrough video: [Medibook Project Demo Video](https://drive.google.com/file/d/1rzDAS8X0n7a_jRFJr0P0H71JPrHmNBdN/view?usp=sharing)

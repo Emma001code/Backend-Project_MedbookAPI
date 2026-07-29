@@ -110,7 +110,7 @@ async function deletePatient(req, res, next) {
     }
 
     await patientModel.deletePatient(idCheck.data);
-    res.status(204).send();
+    res.status(200).send(`Patient with id ${idCheck.data} deleted successfully`);
   } catch (error) {
     next(mapDatabaseError(error));
   }
