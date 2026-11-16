@@ -1,6 +1,6 @@
 # MediBook — Setup & Design Notes
 
-How to run the project locally and the main design choices for Parts C, D, and E. The assignment Instructions is in [README.md](../README.md).
+How to run the project locally and the main design choices behind the API, audit log, and Redis worker. Portfolio overview: [root README](../README.md).
 
 **Stack:** Node.js, Express, MySQL (`mysql2`), Redis, Jest
 
@@ -14,7 +14,7 @@ How to run the project locally and the main design choices for Parts C, D, and E
 | Database DDL + seed data | `database/schema.sql`, `database/seed.sql`    |
 | API + worker             | `src/`                                        |
 | Unit tests               | `tests/`                                      |
-| Locale files (Part G)    | `locales/english.json`, `locales/french.json` |
+| Locale files             | `locales/english.json`, `locales/french.json` |
 | Environment template     | `.env.example`                                |
 | Docs + demo video        | `docs/`                                       |
 
@@ -69,7 +69,7 @@ Variables (see `.env.example` for the full list):
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | MySQL connection          |
 | `REDIS_HOST`, `REDIS_PORT`                                | Redis connection          |
 
-Do not commit `.env`. Secrets in git cost marks.
+Do not commit `.env`. Keep secrets out of git.
 
 ### 3. Install dependencies and start
 
@@ -94,7 +94,7 @@ Confirm it is up:
 curl http://localhost:3000/health
 ```
 
-Or open `http://localhost:3000/health` in a browser or in postman. You should get `{"status":"ok","database":"connected"}`.
+Or open `http://localhost:3000/health` in a browser or in Postman. You should get `{"status":"ok","database":"connected"}`.
 
 **Waitlist and confirmations** need Redis running plus a second terminal:
 
@@ -166,7 +166,7 @@ All routes are mounted at the root. SQL lives only in `src/models/`.
 | `GET`  | `/reports/doctors`   | Every doctor, including those with zero appointments |
 | `GET`  | `/reports/busy-days` | Doctor-days above 80% of the 12-slot cap             |
 
-### Feedback (Part G)
+### Feedback
 
 | Method | Path                | Notes                 |
 | ------ | ------------------- | --------------------- |
@@ -179,9 +179,9 @@ Unsupported `lang` values fall back to English.
 
 ## Design justifications
 
-These are the main decisions for Parts C, D, and E.
+These are the main decisions for the API layer, audit logging, and Redis worker.
 
-### Part C: API and business rules
+### API and business rules
 
 **REST layout.** I split routes by resource (`/patients`, `/doctors`, `/appointments`, `/reports`) and kept appointment booking/cancellation on `/appointments` instead of a generic CRUD table. That matches how the clinic actually uses the system: patients and doctors are managed separately, but an appointment is really a "book" or "cancel" action, not a normal update.
 
@@ -208,15 +208,15 @@ Cancellation updates `status`, `cancelled_at`, and `refund_amount` in one transa
 
 **Reports in SQL.** Doctor statistics and both admin reports are computed in the model layer with joins and aggregates. JavaScript mostly just passes results through.
 
-### Part D: Audit log
+### Audit log
 
 Successful bookings and cancellations append one JSON line to `logs/audit.log` using `fs/promises` (`appendFile`, `mkdir`). The `logs/` folder is created on first write.
 
 Logging is fire-and-forget (`void appendToAuditLog(...)`). If the disk write fails, the error is logged to the console but the HTTP response still succeeds. No `*Sync` calls in request handlers.
 
-The worker also writes to the same file for confirmations and waitlist events, but Part D only required booking and cancellation from the API path.
+The worker also writes to the same file for confirmations and waitlist events.
 
-### Part E: Waitlist and worker
+### Waitlist and worker
 
 **Why a separate worker.** The web server should answer HTTP quickly. Popping a waitlist entry, re-booking into MySQL, and sending a confirmation job can take time, so that work runs in `src/worker.js` with its own Redis connection.
 
@@ -260,4 +260,4 @@ I did not add a separate `POST /waitlist` endpoint. Waitlist join happens inside
 
 ## Demo video
 
-- Demo walkthrough video: [Medibook Project Demo Video](https://drive.google.com/file/d/1rzDAS8X0n7a_jRFJr0P0H71JPrHmNBdN/view?usp=sharing)
+- Demo walkthrough: [MediBook Project Demo Video](https://youtu.be/z_ai67KqA9k)
